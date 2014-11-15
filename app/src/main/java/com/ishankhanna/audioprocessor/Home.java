@@ -1,6 +1,7 @@
 package com.ishankhanna.audioprocessor;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -66,7 +67,7 @@ public class Home extends Activity implements View.OnClickListener, SurfaceHolde
     int drawBaseLine = 0;
 
     TextView tv_status;
-    Button bt_recording, bt_playback;
+    Button bt_recording, bt_playback, bt_analyse;
     String outputFile;
     MediaRecorder myAudioRecorder;
 
@@ -82,7 +83,7 @@ public class Home extends Activity implements View.OnClickListener, SurfaceHolde
         tv_status = (TextView) findViewById(R.id.tv_status);
         bt_recording = (Button) findViewById(R.id.bt_recording);
         bt_playback = (Button) findViewById(R.id.bt_playback);
-
+        bt_analyse = (Button) findViewById(R.id.bt_analyse);
         paint = new Paint();
 
         paint.setStrokeWidth(1.5f);
@@ -94,7 +95,12 @@ public class Home extends Activity implements View.OnClickListener, SurfaceHolde
 
         bt_playback.setOnClickListener(this);
         bt_recording.setOnClickListener(this);
-        surfaceView.getHolder().addCallback(this);
+        bt_analyse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                plotValues();
+            }
+        });
 
         outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording";
 
@@ -303,27 +309,6 @@ public class Home extends Activity implements View.OnClickListener, SurfaceHolde
 
     }
 
-    private void tryDrawing(SurfaceHolder holder) {
-        Log.i(TAG, "Trying to draw...");
-
-        Canvas canvas = holder.lockCanvas();
-        if (canvas == null) {
-            Log.e(TAG, "Cannot draw onto the canvas as it's null");
-        } else {
-            drawMyStuff(canvas);
-            holder.unlockCanvasAndPost(canvas);
-        }
-    }
-
-    private void drawMyStuff(final Canvas canvas) {
-        Log.i(TAG, "Drawing...");
-        canvas.drawRGB(255, 128, 128);
-
-        canvas.drawLine(0,250, 768,250, new Paint());
-    }
-
-
-
     public void plotValues(){
 
         InputStream inStream = null;
@@ -372,25 +357,20 @@ public class Home extends Activity implements View.OnClickListener, SurfaceHolde
 
                 System.out.println("Length of fftRealArray = " + fftRealArray.length);
 
-                surfaceView.invalidate();
-
-                Canvas canvas;
-                canvas =  surfaceView.getHolder().lockCanvas();
-                canvas.drawRGB(255, 128, 128);
-                paint.setStrokeWidth(0.5f);
-                float increment = fft.specSize()/surfaceView.getWidth();
-                System.out.println();
+                double increment = (double)surfaceView.getWidth()/(double)fft.specSize();
+                System.out.println("Increment = "+increment);
                 float x = 0;
-                for(i = 0; i<100; i++){
-                    float val = 0;
-                    val += fft.getBand(i);
-                    System.out.println("Amplitude of Frequency Band "+i+" is "+val);
-                    x += increment;
-                    canvas.drawLine(i, drawBaseLine, i, drawBaseLine-val, paint);
-                }
-                surfaceView.getHolder().unlockCanvasAndPost(canvas);
 
+                float[] spectralLinesHeights = new float[fft.specSize()];
 
+                for(i = 0; i<fft.specSize(); i++){
+                    spectralLinesHeights[i] = fft.getFreq(fft.indexToFreq(i));
+
+                 }
+
+                SpectralGraphActivity.spectralLinesArray = spectralLinesHeights;
+
+                startActivity(new Intent(Home.this,SpectralGraphActivity.class));
 
             }
         } catch (FileNotFoundException e) {

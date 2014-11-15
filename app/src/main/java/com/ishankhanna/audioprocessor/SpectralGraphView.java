@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 /**
@@ -11,10 +13,12 @@ import android.view.View;
  */
 public class SpectralGraphView extends View {
 
+    static final String TAG = "SpectralGrpahView";
+
     float[] heightOfSpectralLines;
     float baseLineYCoordinate;
     float screenWidth;
-    float increment; // This decides the gap between two consecutive spectral lines
+    double increment; // This decides the gap between two consecutive spectral lines
     Paint paint;
 
     static final int CLR_BACKGROUND = Color.CYAN;
@@ -23,11 +27,19 @@ public class SpectralGraphView extends View {
     static final int CLR_SPEC_LINE_EVEN = Color.YELLOW;
     static final float STROKE_WIDTH = 1.1f;
 
-    public SpectralGraphView(Context context, float[] _heighOfSpectralLines) {
-        super(context);
-        heightOfSpectralLines = _heighOfSpectralLines;
+    public SpectralGraphView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         paint = new Paint();
+    }
 
+    public float[] getHeightOfSpectralLines() {
+        return heightOfSpectralLines;
+    }
+
+    public void setHeightOfSpectralLines(float[] heightOfSpectralLines) {
+        this.heightOfSpectralLines = heightOfSpectralLines;
+        invalidate();
+        requestLayout();
     }
 
     @Override
@@ -40,6 +52,21 @@ public class SpectralGraphView extends View {
         // Calculate Axis Postion
         baseLineYCoordinate = getHeight()/2;
 
+        //calculate increments
+        increment = (double)getWidth()/(double)heightOfSpectralLines.length;
+        Log.v(TAG, "Increments = "+increment);
+        float x = 0;
+        // Plot lines
+        paint.setColor(CLR_SPEC_LINE_ODD);
+        for(int i=0;i<heightOfSpectralLines.length;i++){
+            //Log.v(TAG, "Height of Line "+(i+1)+" is "+heightOfSpectralLines[i]);
+            double pointAbove = (double)baseLineYCoordinate - ((double)heightOfSpectralLines[i]/(double)2);
+            double pointBelow = (double)baseLineYCoordinate + ((double)heightOfSpectralLines[i]/(double)2);
+            Log.v(TAG, "A = "+pointAbove+", B = "+pointBelow);
+            canvas.drawLine(x, (float)pointAbove, x, (float)pointBelow, paint);
+            x+=increment;
+        }
+        Log.v(TAG, "No of Lines = "+heightOfSpectralLines.length);
         // Draw the X Axis
         paint.setColor(CLR_X_AXIS);
         canvas.drawLine(0, baseLineYCoordinate, getWidth(), baseLineYCoordinate, paint);
