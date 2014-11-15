@@ -1,0 +1,124 @@
+
+    public void setup(Canvas canvas) {
+
+        if(aRecStarted) {
+            bufferReadResult = audioRecord.read(buffer, 0 ,bufferSize);
+            System.out.println("BufferReadResult = "+bufferReadResult);
+            if((bufferReadResult & -bufferReadResult - 1) != bufferReadResult) bufferReadResult = 2 << (int)(Math.log(bufferReadResult)/Math.log(2));
+            System.out.println("After Processing = "+bufferReadResult);
+            fft = new FFT(bufferReadResult, RECORDER_SAMPLERATE);
+            fftRealArray = new float[bufferReadResult];
+
+            drawScaleW = drawScaleW*(float)surfaceView.getWidth()/(float)fft.freqToIndex(maxFrequencyToDraw);
+
+        }
+    }
+
+
+//==============================//
+
+       do{
+
+            bufferReadResult = audioRecord.read(buffer, 0, bufferSize);
+
+            volume = 0;
+            for (int i = 0; i < bufferReadResult; i++) {
+                fftRealArray[i] = (float) buffer[i] / Short.MAX_VALUE;// 32768.0;
+                volume += Math.abs(fftRealArray[i]);
+            }
+            volume = (float)Math.log10(volume/bufferReadResult);
+
+            // apply windowing
+            for (int i = 0; i < bufferReadResult/2; ++i) {
+                // Calculate & apply window symmetrically around center point
+                // Hanning (raised cosine) window
+                float winval = (float)(0.5+0.5*Math.cos(Math.PI*(float)i/(float)(bufferReadResult/2)));
+                if (i > bufferReadResult/2)  winval = 0;
+                fftRealArray[bufferReadResult/2 + i] *= winval;
+                fftRealArray[bufferReadResult/2 - i] *= winval;
+            }
+            // zero out first point (not touched by odd-length window)
+            fftRealArray[0] = 0;
+            fft.forward(fftRealArray);
+
+            //tv_status.setText();
+
+
+
+
+//
+//
+//            //fill(255);
+//            //stroke(100);
+//            //pushMatrix();
+//            canvas.save();
+//            //rotate(radians(90));
+//            canvas.rotate((float)Math.toDegrees(90.00));
+//            //translate(drawBaseLine-3, 0);
+//            canvas.translate(drawBaseLine-3, 0);
+//            //textAlign(LEFT,CENTER);
+//            for (float freq = RECORDER_SAMPLERATE/2-1; freq > 0.0; freq -= 150.0) {
+//                int y = -(int)(fft.freqToIndex(freq)*drawScaleW); // which bin holds this frequency?
+//                //line(-displayHeight,y,0,y); // add tick mark
+//                canvas.drawLine((float)-surfaceView.getHeight(),(float)y,(float)0,(float)y, paint);
+//                //text(Math.round(freq)+" Hz", 10, y); // add text label
+//            }
+//            //popMatrix();
+//            canvas.restore();
+//            //noStroke();
+//
+//            float lastVal = 0;
+//            float val = 0;
+//            float maxVal = 0; // index of the bin with highest value
+//            int maxValIndex = 0; // index of the bin with highest value
+//            for(int i = 0; i < fft.specSize(); i++)
+//            {
+//                val += fft.getBand(i);
+//                if (i % drawStepW == 0) {
+//                    val /= drawStepW; // average volume value
+//                    int prev_i = i-drawStepW;
+//                    //stroke(255);
+//                    // draw the line for frequency band i, scaling it up a bit so we can see it
+//                    //line( prev_i*drawScaleW, drawBaseLine, prev_i*drawScaleW, drawBaseLine - lastVal*drawScaleH );
+//                    canvas.drawLine(prev_i * drawScaleW, drawBaseLine, prev_i * drawScaleW, drawBaseLine - lastVal * drawScaleH, paint);
+//
+//                    if (val-lastVal > PEAK_THRESH) {
+//                        //stroke(255,0,0);
+//                        //fill(255,128,128);
+//                        //ellipse(i*drawScaleW, drawBaseLine - val*drawScaleH, 20,20);
+//                        canvas.drawArc(new RectF(i*drawScaleW, drawBaseLine - val*drawScaleH, 20,20),0, 90, false, paint);
+//                        //stroke(255);
+//                        //fill(255);
+//                        if (val > maxVal) {
+//                            maxVal = val;
+//                            maxValIndex = i;
+//                        }
+//                    }
+//                    //line( prev_i*drawScaleW, drawBaseLine - lastVal*drawScaleH, i*drawScaleW, drawBaseLine - val*drawScaleH );
+//                    canvas.drawLine( prev_i*drawScaleW, drawBaseLine - lastVal*drawScaleH, i*drawScaleW, drawBaseLine - val*drawScaleH , paint);
+//
+//                    lastVal = val;
+//                    val = 0;
+//                }
+//            }
+//            if (maxValIndex-drawStepW > 0) {
+//                //fill(255,0,0);
+//                //ellipse(maxValIndex*drawScaleW, drawBaseLine - maxVal*drawScaleH, 20,20);
+//                canvas.drawArc(new RectF(maxValIndex*drawScaleW, drawBaseLine - maxVal*drawScaleH, 20,20),0, 90, false, paint);
+//                //fill(0,0,255);
+//                //text( " " + fft.indexToFreq(maxValIndex-drawStepW/2)+"Hz",
+//                //        25+maxValIndex*drawScaleW, drawBaseLine - maxVal*drawScaleH);
+//            }
+//            //fill(255);
+//            //pushMatrix();
+//            canvas.save();
+//            //translate(displayWidth/2,drawBaseLine);
+//            canvas.translate(surfaceView.getWidth()/2, drawBaseLine);
+//            //text("buffer readed: " + bufferReadResult, 20, 80);
+//            //text("fft spec size: " + fft.specSize(), 20, 100);
+//            //text("volume: " + volume, 20, 120);
+//            //popMatrix();
+//            canvas.restore();
+
+
+        }while(aRecStarted);
