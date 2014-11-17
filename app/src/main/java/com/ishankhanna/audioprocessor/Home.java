@@ -102,7 +102,7 @@ public class Home extends Activity implements View.OnClickListener, SurfaceHolde
             }
         });
 
-        outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording";
+        outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
 
 
     }

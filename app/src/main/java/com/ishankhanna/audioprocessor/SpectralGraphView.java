@@ -53,23 +53,31 @@ public class SpectralGraphView extends View {
         baseLineYCoordinate = getHeight()/2;
 
         //calculate increments
-        increment = (double)getWidth()/(double)heightOfSpectralLines.length;
+        increment = ((double)getWidth()-10.0d)/(double)heightOfSpectralLines.length;
         Log.v(TAG, "Increments = "+increment);
-        float x = 0;
+        float x = 10.0f;
         // Plot lines
-        paint.setColor(CLR_SPEC_LINE_ODD);
         for(int i=0;i<heightOfSpectralLines.length;i++){
             //Log.v(TAG, "Height of Line "+(i+1)+" is "+heightOfSpectralLines[i]);
-            double pointAbove = (double)baseLineYCoordinate - ((double)heightOfSpectralLines[i]/(double)2);
-            double pointBelow = (double)baseLineYCoordinate + ((double)heightOfSpectralLines[i]/(double)2);
-            Log.v(TAG, "A = "+pointAbove+", B = "+pointBelow);
+            double pointAbove = (double)baseLineYCoordinate - (((double)heightOfSpectralLines[i]/(double)2)*2.0d);
+            double pointBelow = (double)baseLineYCoordinate + (((double)heightOfSpectralLines[i]/(double)2)*2.0d);
+//            Log.v(TAG, "A = "+pointAbove+", B = "+pointBelow);
+            paint.setColor(CLR_SPEC_LINE_ODD);
             canvas.drawLine(x, (float)pointAbove, x, (float)pointBelow, paint);
+            if(i%500==0){
+                paint.setColor(CLR_X_AXIS);
+                paint.setTextSize(20.0f);
+                canvas.drawText((int)heightOfSpectralLines[i]+" Hz", x, (float)pointAbove-50.0f, paint);
+                canvas.drawLine(x, (float)pointAbove, x, (float)pointBelow, paint);
+            }
             x+=increment;
         }
         Log.v(TAG, "No of Lines = "+heightOfSpectralLines.length);
         // Draw the X Axis
         paint.setColor(CLR_X_AXIS);
         canvas.drawLine(0, baseLineYCoordinate, getWidth(), baseLineYCoordinate, paint);
+
+        canvas.drawText("Amplitude of Frequency in Each Spectrum (Hz)", 20, getHeight()-100, paint);
 
 
 
